@@ -1,6 +1,8 @@
 ---
 title: "Análisis de datos ómicos"
-subtitle: "PEC1"
+subtitle: | 
+ | PEC1
+ | https://github.com/LO-Pablo/Lorca-Orloff-PEC1
 author: 'Lorca Orloff, Pablo'
 #date: '`r format(Sys.Date(),"%e de %B, %Y")`'
 bibliography: references.bib
@@ -55,7 +57,7 @@ Los objetivos de este trabajo son los siguientes:
 
 1.  Analizar de manera exploratoria un conjunto de datos ómicos.
 
-2.  Crear y utilizar un objeto de la clase `SummarizedExperiment`.
+2.  Crear, generar y utilizar un objeto de la clase `SummarizedExperiment`.
 
 # Métodos
 
@@ -129,6 +131,8 @@ se <- SummarizedExperiment::SummarizedExperiment(
     colData = col_data,
     metadata = metadata_list
 )
+
+save(se, file = "se_human_cachexia_PEC1_PLO.Rda")
 ```
 
 ## Análisis de la data

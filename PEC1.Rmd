@@ -124,7 +124,7 @@ La data consta de 77 observaciones y 65 variables sin datos faltantes. De las 65
 
 ## Generación de `SummarizedExperiment`
 
-Se generó el objeto `SummarizedExperiment` considerando las primeras dos columnas,`Patient ID` y `Muscle loss`, como información descriptiva (`col_data`), por otra parte, los valores de los metabolitos se consideraro para la matriz de expresión (`assays`).
+Se generó el objeto `SummarizedExperiment` considerando las primeras dos columnas,`Patient ID` y `Muscle loss`, como información descriptiva (`col_data`), por otra parte, los valores de los metabolitos se consideraron para la matriz de expresión (`assays`).
 
 \small
 
@@ -161,7 +161,7 @@ Al agrupar y analizar los datos según su condición `Muscle.loss` se observa qu
 
 ### Distribución
 
-La distribución que presentan los datos de cada metabolito según su condición `Muscle.loss`, por lo general, no muestran presentar una distribución normal (Ver Figura Anexo 2), lo cual se corrobora al realizar un test de Shapiro-Wilks (Ver Anexo 3), en donde en ningún caso hay evidencia para confirmar normalidad. En base a esto, si se quisiera realizar más análisis estadísticos, se sugiere transformar los datos (por ejemplo normalizar) o se emplear pruebas no paramétricas.
+La distribución que presentan los datos de cada metabolito según su condición `Muscle.loss`, por lo general, no muestran presentar una distribución normal (Ver Figura Anexo 2), lo cual se corrobora al realizar un test de Shapiro-Wilks (Ver Anexo 3), en donde en ningún caso hay evidencia para confirmar normalidad. En base a esto, si se quisiera realizar más análisis estadísticos, se sugiere transformar los datos (por ejemplo normalizar) o emplear pruebas no paramétricas.
 
 ### Correlación
 

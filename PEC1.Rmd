@@ -2,7 +2,7 @@
 title: "Análisis de datos ómicos"
 subtitle: | 
  | PEC1
- | https://github.com/LO-Pablo/Lorca-Orloff-PEC1
+ | https://github.com/LO-Pablo/Lorca-Orloff-Pablo-PEC1
 author: 'Lorca Orloff, Pablo'
 #date: '`r format(Sys.Date(),"%e de %B, %Y")`'
 bibliography: references.bib
@@ -45,27 +45,34 @@ library(SummarizedExperiment)
 
 if (!require("openxlsx")) install.packages("openxlsx")
 library(openxlsx)
+
+if (!require("kableExtra")) install.packages("kableExtra")
+library(kableExtra)
 ```
 
 # Resumen
 
-a
+En este trabajo se exponen los resultados del análisis exploratorio realizado a un conjunto de datos sobre el síndrome caquexia en humanos. El conjunto de datos presenta un estudio de 63 metabolitos para 77 pacientes, de los cuales 47 presentaban caquexia y 30 eran del grupo control. Se generó un objeto `SummarizedExperiment` para ordenar y almacenar la data para su trabajo. Del análisis se obtuvo que la distribución de los datos no es paramétrica, que, a modo general, habrían 1140 interacciones entre los metabolitos y el componente principal del análisis de componentes principales explicaría aproximadamente el 40,43% de la variabilidad de los datos. Aunque el análisis es superficial, estos resultados abren la puerta a estudios más profundos que puedan implementar métodos no paramétricos o enfoques de *machine learning* para establecer conexiones significativas entre los metabolitos y el síndrome caquexia.
 
 # Objetivos
 
 Los objetivos de este trabajo son los siguientes:
 
-1.  Analizar de manera exploratoria un conjunto de datos ómicos.
+1.  Analizar de manera exploratoria un conjunto de datos ómicos
 
-2.  Crear, generar y utilizar un objeto de la clase `SummarizedExperiment`.
+2.  Crear, generar y utilizar un objeto de la clase `SummarizedExperiment`
 
 # Métodos
+
+## Código y repositorio
+
+El código, los datos y la metadata generadas y utilizadas en este estudio se encuentran disponibles en mi repositorio de Github personal [@LorcaOrloff2025].
 
 ## Obtención set de datos
 
 Los datos utilizados en este trabajo se obtuvieron del repositorio de *Github* de *nutrimetabolomics* @nutrimetabolomics_metaboData. Se escogió el set de datos referente a la enfermedad caquexia (2024-Cachexia).
 
-## Obtención set de datos
+## Objeto `SummarizedExperiment`
 
 Para almacenar y contener la data y metadata a trabajar, se generó un objeto `SummarizedExperiment` [@SummarizedExperiment].
 
@@ -73,7 +80,7 @@ Para almacenar y contener la data y metadata a trabajar, se generó un objeto `S
 
 Para un análisis estadístico de los datos, se visualizaron a través de gráficos de cajas e histogramas, además de realizar una prueba de Shapiro-Wilks.
 
-Para evaluar la correlación entre los metabolitos se analizó mediante la función `cor`.
+Para evaluar la correlación entre los metabolitos se analizó mediante la función `cor`. Se realizó la correlación tanto a modo general, como separando los datos entre pacientes con caquexia y pacientes control.
 
 Para estudiar la variabilidad en un conjunto de datos multivariantes se realizó un análisis de componente principal (PCA) utilizando la función `prcomp` normalizando los datos con la opción `scale. = TRUE`.
 
@@ -83,15 +90,20 @@ Para estudiar la variabilidad en un conjunto de datos multivariantes se realizó
 
 Se procede a cargar la data con de `human_cachexia` y la metadata.
 
+\small
 ```{r}
 #Cargar archivos data y metadata
 data <- read.csv('human_cachexia.csv', check.names = FALSE)
 data_info <- openxlsx::read.xlsx("Data_Catalog.xlsx")
 ```
 
+\normalsize
+
 ## Exploración de la data
 
 Se procede a realizar una primera exploración de los datos.
+
+\small
 
 ```{r}
 # Dimensión
@@ -106,12 +118,15 @@ any(is.na(data))
 #Proporción Caquexia/Control
 table(data$`Muscle loss`)
 ```
+\normalsize
 
 La data consta de 77 observaciones y 65 variables sin datos faltantes. De las 65 variables, la primera corresponde al identificador del paciente, la segunda corresponde si el paciente presenta caquexia o pertenece al grupo control, y luego los 63 metabolitos medidos.
 
 ## Generación de `SummarizedExperiment`
 
 Se generó el objeto `SummarizedExperiment` considerando las primeras dos columnas,`Patient ID` y `Muscle loss`, como información descriptiva (`col_data`), por otra parte, los valores de los metabolitos se consideraro para la matriz de expresión (`assays`).
+
+\small
 
 ```{r}
 # Matriz de expresión - Sin 'Patient ID' y 'Muscle loss'
@@ -132,8 +147,11 @@ se <- SummarizedExperiment::SummarizedExperiment(
     metadata = metadata_list
 )
 
+# Generación de archivo binario
 save(se, file = "se_human_cachexia_PEC1_PLO.Rda")
 ```
+
+\normalsize
 
 ## Análisis de la data
 
@@ -143,25 +161,60 @@ Al agrupar y analizar los datos según su condición `Muscle.loss` se observa qu
 
 ### Distribución
 
-La distribución que presentan los datos de cada metabolito según su condición `Muscle.loss`, por lo general, no muestran presentar una distribución normal (Ver Figura Anexo 2), lo cual se corrobora al realizar un test de Shapiro-Wilks (Ver Anexo 3), en donde en ningún caso hay evidencia para confirmar normalidad.
+La distribución que presentan los datos de cada metabolito según su condición `Muscle.loss`, por lo general, no muestran presentar una distribución normal (Ver Figura Anexo 2), lo cual se corrobora al realizar un test de Shapiro-Wilks (Ver Anexo 3), en donde en ningún caso hay evidencia para confirmar normalidad. En base a esto, si se quisiera realizar más análisis estadísticos, se sugiere transformar los datos (por ejemplo normalizar) o se emplear pruebas no paramétricas.
 
 ### Correlación
 
+Se procede a realizar un análisis de correlación entre los metabolitos, tanto a modo general, como separados por condición de caquexia.
+
+\small
+
 ```{r}
-# Matriz de correlación
+# Matriz de correlación - todo
 m_cor <- cor(t(assay(se)))
+
+# Matriz de correlación - caquexia
+m_cor_caq <- cor(t(assay(se)[,se@colData$Muscle.loss == "cachexic"]))
+
+# Matriz de correlación - control
+m_cor_con <- cor(t(assay(se)[,se@colData$Muscle.loss == "control"]))
 
 # Elimina parte inferior
 m_cor[lower.tri(m_cor)] <- NA
+m_cor_caq[lower.tri(m_cor_caq)] <- NA
+m_cor_con[lower.tri(m_cor_con)] <- NA
 
-# Límite cor 0.7 - Exluye diagonal
-sum(abs(m_cor) > 0.7 & abs(m_cor) != 1, na.rm = TRUE)
+# Límite cor 0.7 - Excluye diagonal
+sum_cor_f <- sum(abs(m_cor) > 0.7 & abs(m_cor) != 1, na.rm = TRUE)
+sum_cor_f_caq <- sum(abs(m_cor_caq) > 0.7 & abs(m_cor_caq) != 1, na.rm = TRUE)
+sum_cor_f_con <- sum(abs(m_cor_con) > 0.7 & abs(m_cor_con) != 1, na.rm = TRUE)
 
-# Límite cor 0.3 - Exluye diagonal
-sum(abs(m_cor) > 0.3 & abs(m_cor) != 1, na.rm = TRUE)
+# Límite cor 0.3 - Excluye diagonal
+sum_cor <- sum(abs(m_cor) > 0.3 & abs(m_cor) != 1, na.rm = TRUE)
+sum_cor_caq  <- sum(abs(m_cor_caq) > 0.3 & abs(m_cor_caq) != 1, na.rm = TRUE)
+sum_cor_con <- sum(abs(m_cor_con) > 0.3 & abs(m_cor_con) != 1, na.rm = TRUE)
+```
+\normalsize
+```{r, echo=FALSE}
+
+# df cor general / caquexia / control sobre 0.7 $ 0.3
+df_sum_cor <- data.frame(
+  "Límite de Correlación" = c("0.7", "0.3"),
+  "Total (General)" = c(sum_cor_f, sum_cor),
+  "Total (Caquexia)" = c(sum_cor_f_caq, sum_cor_caq),
+  "Total (Control)" = c(sum_cor_f_con, sum_cor_con)
+)
+
+# Tabla
+kableExtra::kable(df_sum_cor, caption = "Resultados de Correlación entre metabolitos", 
+                  col.names = c("Límite de Correlación",
+                                "Total (General)",
+                                "Total (Caquexia)",
+                                "Total (Control)"),
+                  align = 'c', escape = FALSE)
 ```
 
-Al evaluar las posibles correlaciones entre metabolitos, se encontró que 1140 parejas de metabolitos podrían presentar algún grado de correlación lineal significativa, y 140 presentarían una correlación lineal fuerte.
+Al evaluar las posibles correlaciones entre metabolitos, se encontró que, en toda la data, 1140 parejas de metabolitos podrían presentar algún grado de correlación lineal significativa, y 108 presentarían una correlación lineal fuerte. En cambio, los metabolitos de los pacientes que presentan caquexia, se encontró que 985 parejas de metabolitos podrían presentar algún grado de correlación lineal significativa, y 86 presentarían una correlación lineal fuerte. Finalmente, los análisis de la correlación entre los metabolitos de los pacientes control sugieren que  1402 parejas de metabolitos podrían presentar algún grado de correlación lineal significativa, y 378 presentarían una correlación lineal fuerte.
 
 ### Análisis de componentes principales
 
@@ -170,14 +223,18 @@ options(width = 95)
 ```
 
 Se realizó un análisis de componentes principales.
-
+\small
 ```{r}
 # PCA
 pca <- prcomp(t(assay(se)), scale. = TRUE)
 
 # Resultados
 summary(pca)
+# Cargas de los componentes
+head(pca$rotation[, 1:3])
 ```
+
+\normalsize
 
 El análisis muestra que el primer componente (PC1) explica aproximadamente un 40,43% de la variabilidad de los datos, seguido del segundo componente (PC2) que explica aproximadamente un 8,18% de la variabilidad de los datos. Los tres primeros componentes (PC1 + PC2 + PC3) explicarían el 53,94% variabilidad de los datos.
 
@@ -187,9 +244,27 @@ El análisis muestra que el primer componente (PC1) explica aproximadamente un 4
 
 Tanto `ExpressionSet` como `SummarizedExperiment` son clases de R que permiten crear objetos para almacenar y manipular datos ómicos. La clase `SummarizedExperiment` ofrece una mayor flexibilidad a la hora integrar metadata y manejar distintos tipos de datos, mientras que `ExpressionSet` está más enfocada en datos de tipo microarreglos y una estructura más rígida [@Biobase; @SummarizedExperiment].
 
+## Metabolitos y caquexia
+
+La caquexia es un síndrome metabólico en el cual una persona va perdiendo masa muscular de manera progresiva sin importar el estado de nutrición. Se suele vincular a otras patologías como el cáncer, enfermedades renales y pulmonares, entre otras. Su manifestación varía entre pacientes, por lo que no es fácil de diagnosticar y menos de predecir [@enwiki:1282787849].
+
+En los sistemas biológicos los metabolitos pueden desempeñar múltiples funciones, ya sea como participantes e intermediarios de ciclos metabólicos, señalización celular, también se pueden evaluar como marcadores del estado fisiológico del sistema. En este estudio, se muestra que varios de los metabolitos estudiados, tanto para la data en general, como para los subgrupos de pacientes, podrían presentar algún grado de correlación, lo cual es coherente con que los metabolitos estén interconectados por los distintos procesos mencionados.
+
+Otro aspecto interesante es ver que, en promedio, los metabolitos estudiados estén más elevados en los pacientes con caquexia que los del grupo control. Esta información abre las puertas a estudiar en específico dichos metabolitos y sus respectivas rutas metabólicas e interacciones para poder entender más su impacto en el síndrome. Profundizar en esto podría contribuir a identificar biomarcadores que sean claves para poder predecir su aparición, mediante algún método de *machine learning*, o para plantear posibles tratamientos para mitigar y/o prevenir los efectos y complicaciones de este síndrome.
+
+## Limitaciones
+
+El estudio de los datos fue realizado de manera superficial, por lo que los datos y conclusiones extraídas deben ser tratadas con cautela, pero pueden ser utilizadas como punto de partida para análisis más profundos. Adicionalmente, aunque los análisis muestren la existencia de correlaciones entre los metabolitos, este estudio no explica ni implica una causalidad entre ellos.
+
 # Conclusiones
 
-a
+En este trabajo se realizó un análisis superficial de un conjunto de datos de caquexia en humanos [@nutrimetabolomics_metaboData]. Se construyó un objeto `SummarizedExperiment` para ordenar y trabajar la data.
+
+Los datos de los metabolitos muestran signos de correlación entre ellos, su distribución no cumple criterios de normalidad y los promedios suelen ser más altos en los pacientes con caquexia que en los pacientes control. Además, el análisis de PCA mostró que el primer componente (PC1) lograba explicar el 40,43% de la variabilidad de los datos, y la suma de los tres primeros componentes explica el 53,94% de la variabilidad de los datos.
+
+El análisis abre las puertas a seguir trabajando con los datos para estudiar las posibles conexiones entre los metabolitos y el síndrome caquexia, y ver si se logra establecer alguna relación significativa entre la expresión metabólica y el síndrome caquexia.
+
+
 
 \newpage
 
@@ -197,6 +272,7 @@ a
 
 ::: {#refs}
 :::
+
 
 \newpage
 
@@ -220,8 +296,8 @@ for (i in 1:nrow(assay(se))) {
 }
 ```
 
-Figura Anexo 1: Boxplot de cada metabolito separado según condición `Muscle_loss`. En celeste el grupo que presenta caquexia y en verde claro el grupo control.\
-\
+Figura Anexo 1: Boxplot de cada metabolito separado según condición `Muscle_loss`. En celeste el grupo que presenta caquexia y en verde claro el grupo control.   
+      
 **Anexo 2**
 
 ```{r fig.cap = "Distribución de cada metabolito separado según condición `Muscle_loss`. En celeste el grupo que presenta caquexia y en verde claro el grupo control.", echo=FALSE, fig.width = 8, fig.height = 2.5}
@@ -236,12 +312,13 @@ for (i in 1:nrow(assay(se))) {
   control <- as.numeric(assay(se)[i, colData(se)$Muscle.loss == "control"])
   
   # Histogramas
+  # Caquexia
   hist(caq, 
        main = 'Caquexia',
        xlab = metabolito, ylab = NULL,
        col = "lightblue",
        las = 2)
-  
+  # Control
   hist(control, 
        main = 'Control',
        xlab = NULL, ylab = NULL,
@@ -254,9 +331,10 @@ Figura Anexo 2: Distribución de cada metabolito separado según condición `Mus
 
 **Anexo 3**
 
+\small
+
 ```{r}
 # Evaluar normalidad
-
 metabolitos <- character()
 v_caq_p <- character()
 v_con_p <- character()
